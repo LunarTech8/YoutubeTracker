@@ -1,0 +1,49 @@
+// -------------
+// Symbol legend:
+// -------------
+
+Task priority:
+"!!!!-" = Blocker
+"!!!-" = Critical
+"!!-" = Major
+"!-" = Minor
+"- ((" = Probably not needed
+
+Work status:
+"-" = Queued
+">-" = Analysis
+">>-" = Implementation
+">>>-" = Testing
+
+
+// -------------
+// Worklog:
+// -------------
+
+!!!>>- Implement OpenYoutubeList.pyw
+	>>>- Have a list with a row for each entry
+	>>- Each row has the following columns:
+		- A check box for watched/unwatched
+		- The current time of the video
+		- The full time of the video
+		- A category dropdown
+		- The video name
+		- The link to the video
+	- Implement WATCHED, PROGRESS, CATEGORY as Fields
+	- Use another separator as current one is used in video names
+	- Think about how to get idx in feedback
+
+
+// -------------
+// Backlog:
+// -------------
+
+!- Integrate UpdateYoutubeList.pyw into OpenYoutubeList.pyw
+!- Make header not scrollable / always stay on top
+
+
+// -------------
+// Ideas/Concepts:
+// -------------
+
+!- Make the link clickable and for it to open the video at the current time

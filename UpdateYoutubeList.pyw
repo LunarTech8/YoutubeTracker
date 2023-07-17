@@ -100,6 +100,7 @@ def main():
 		tk.mainloop()
 	except Exception:
 		print(traceback.format_exc())
+		input('Press enter to close traceback.')
 
 if __name__ == "__main__":
 	main()

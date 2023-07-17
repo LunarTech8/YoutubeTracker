@@ -5,12 +5,13 @@ def isFloat(text):
 
 class MetaDataYoutube:
 	FILE_NAME = 'MetaDataYoutube.txt'
-	FIELD_SEPARATOR = ' | '
+	FIELD_SEPARATOR = ' | '  # FIXME: Use another separator as this one is used in video names
 
 	class Field(Enum):
 		NAME = 0
 		LENGTH = 1
 		LINK = 2
+		# TODO: implement WATCHED, PROGRESS, CATEGORY
 
 	def isValidFieldValue(self, fieldType, fieldValue):
 		if fieldValue == None or fieldValue == '' or MetaDataYoutube.FIELD_SEPARATOR in fieldValue:
