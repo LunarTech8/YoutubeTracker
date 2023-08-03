@@ -1,8 +1,8 @@
-WcPnp | 0:15:00 | https://www.youtube.com/watch?v=zlfwJue5I24&t=844s
-Im Wahnsinn zuhause - Satisfactory mit Nicola und Nils | 2:25:20 | https://www.youtube.com/watch?v=OYB8uCkEEA8&list=PLjfEUWw3vyoGs8eciwdt-NO4NsP_sQvXD&index=22
-Endlich gibt es Antworten auf dringliche Fragen! - Subnautica: Below Zero #5 | 59:24 | https://www.youtube.com/watch?v=_t6EVTa4Bl8
-Abstieg in die Alien-Hölle - Subnautica #18 | 34:48 | https://www.youtube.com/watch?v=BmFiTNWYXm4
-Magic trifft Herr der Ringe! Die große Flavor Set Review mit Marah | 2:03:10 | https://www.youtube.com/watch?v=rNRSpmLPz2o
-Das Herr der Ringe Set ist da! - Magic: The Gathering | 2:19:02 | https://www.youtube.com/watch?v=nd7dlnaQBdc
-Florentin in der Relegation| Creepjack 218 - Warcraft 3 | 1:30:23 | https://www.youtube.com/watch?v=4qxOlRELR1s
-Dieser Date-Ort im Auenland ist LEBENSGEF�HRLICH!| HERR DER RINGE FIGHTS | 24:18 | https://www.youtube.com/watch?v=v-zfbLa_nK8
+Warcraft Community Pen And Paper | https://www.youtube.com/watch?v=zlfwJue5I24&t=844s | Pen&Paper | 0:15:00 | 4:42:04 | False
+Im Wahnsinn zuhause - Satisfactory mit Nicola und Nils | https://www.youtube.com/watch?v=OYB8uCkEEA8&list=PLjfEUWw3vyoGs8eciwdt-NO4NsP_sQvXD&index=22 | LetsPlay | 2:25:20 | 3:57:04 | False
+Endlich gibt es Antworten auf dringliche Fragen! - Subnautica: Below Zero #5 | https://www.youtube.com/watch?v=_t6EVTa4Bl8 | LetsPlay | 59:24 | 2:18:05 | False
+Abstieg in die Alien-Hölle - Subnautica #18 | https://www.youtube.com/watch?v=BmFiTNWYXm4 | LetsPlay | 34:48 | 3:29:40 | False
+Magic trifft Herr der Ringe! Die große Flavor Set Review mit Marah | https://www.youtube.com/watch?v=rNRSpmLPz2o | LetsPlay | 2:03:10 | 5:05:55 | False
+Das Herr der Ringe Set ist da! - Magic: The Gathering | https://www.youtube.com/watch?v=nd7dlnaQBdc | LetsPlay | 2:19:02 | 3:19:22 | False
+Coding Adventure: Making a Better Chess Bot | https://www.youtube.com/watch?v=_vqlIPDR2TU | Programming | 19:49 | 1:01:00 | False
+Can You Beat Starcraft 1 Without Losing a Unit? | https://www.youtube.com/watch?v=6_iV0BZ60gs | CutContent | 32:02 | 46:45 | False

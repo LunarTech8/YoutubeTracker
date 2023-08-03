@@ -4,9 +4,9 @@ from MetaDataYoutube import MetaDataYoutube
 from GridField import GridField
 
 # Configurables:
-CONTROL_WINDOW_SIZE = (1010, 500)
+CONTROL_WINDOW_SIZE = (1045, 500)
 CONTROL_WINDOW_GRID_COLUMN_NAMES = ('Watched:', 'Progress:', 'Length:', 'Category:', 'Name:', 'Link:')
-CONTROL_WINDOW_GRID_COLUMN_WIDTHS = (8, 10, 10, 15, 50, 50)
+CONTROL_WINDOW_GRID_COLUMN_WIDTHS = (10, 10, 10, 20, 80, 40)
 assert len(CONTROL_WINDOW_GRID_COLUMN_NAMES) == len(CONTROL_WINDOW_GRID_COLUMN_WIDTHS)
 # Global variables:
 controlWindow = NotImplemented
@@ -83,11 +83,12 @@ def createControlWindow(root):
 	for i in range(controlWindow.getEntryCount()):
 		row = i + 1
 		column = 0
-		for fieldType in MetaDataYoutube.Field:
-			GridField.add(mainFrame, row, column, CONTROL_WINDOW_GRID_COLUMN_WIDTHS[column], GridField.Type.TextEntry, controlWindow.getFieldStrVar(i, fieldType), controlWindow.fieldCallback, pasteClipboardToStrVar)
-			column += 1
-		for fieldType in MetaDataYoutube.Field:
-			GridField.add(mainFrame, row, column, CONTROL_WINDOW_GRID_COLUMN_WIDTHS[column], GridField.Type.TextEntry, controlWindow.getFieldStrVar(i, fieldType), controlWindow.fieldCallback, pasteClipboardToStrVar)
+		for fieldType in MetaDataYoutube.SORTED_FIELD_TYPES:
+			fieldSet = controlWindow.metaData.getSortedFieldSet(fieldType)
+			if fieldSet != None:
+				GridField.add(mainFrame, row, column, CONTROL_WINDOW_GRID_COLUMN_WIDTHS[column], GridField.Type.Combobox, controlWindow.getFieldStrVar(i, fieldType), fieldSet)
+			else:
+				GridField.add(mainFrame, row, column, CONTROL_WINDOW_GRID_COLUMN_WIDTHS[column], GridField.Type.TextEntry, controlWindow.getFieldStrVar(i, fieldType), controlWindow.fieldCallback, pasteClipboardToStrVar)
 			column += 1
 
 def main():

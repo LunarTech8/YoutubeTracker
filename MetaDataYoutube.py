@@ -1,17 +1,17 @@
 from enum import Enum
 
-def isFloat(text):
-	return text.lstrip('-').replace('.', '').isdigit()and text.count('.') <= 1
-
 class MetaDataYoutube:
-	FILE_NAME = 'MetaDataYoutube.txt'
-	FIELD_SEPARATOR = ' | '  # FIXME: Use another separator as this one is used in video names
-
 	class Field(Enum):
 		NAME = 0
-		LENGTH = 1
-		LINK = 2
-		# TODO: implement WATCHED, PROGRESS, CATEGORY
+		LINK = 1
+		CATEGORY = 2
+		PROGRESS = 3
+		LENGTH = 4
+		WATCHED = 5
+
+	FILE_NAME = 'MetaDataYoutube.txt'
+	FIELD_SEPARATOR = ' | '  # FIXME: Use another separator as this one is used in video names
+	SORTED_FIELD_TYPES = (Field.WATCHED, Field.PROGRESS, Field.LENGTH, Field.CATEGORY, Field.NAME, Field.LINK)
 
 	def isValidFieldValue(self, fieldType, fieldValue):
 		if fieldValue == None or fieldValue == '' or MetaDataYoutube.FIELD_SEPARATOR in fieldValue:
@@ -19,10 +19,16 @@ class MetaDataYoutube:
 		match fieldType:
 			case self.Field.NAME:
 				return True
-			case self.Field.LENGTH:
-				return fieldValue.count(':') > 0 and fieldValue.replace(':', '').isdigit()
 			case self.Field.LINK:
-				return ' ' not in fieldValue and fieldValue.startswith('https://')
+				return ' ' not in fieldValue and fieldValue.startswith('https://') and fieldValue != self.getDefaultFieldValue(self.Field.LINK)
+			case self.Field.CATEGORY:
+				return ' ' not in fieldValue
+			case self.Field.PROGRESS:
+				return fieldValue.count(':') > 0 and fieldValue.replace(':', '').isdigit()
+			case self.Field.LENGTH:
+				return fieldValue.count(':') > 0 and fieldValue.replace(':', '').isdigit() and fieldValue != '0:00'
+			case self.Field.WATCHED:
+				return fieldValue in self.getSortedFieldSet(self.Field.WATCHED)
 			case _:
 				return False
 
@@ -30,8 +36,6 @@ class MetaDataYoutube:
 		match fieldType:
 			case self.Field.NAME:
 				return True
-			case self.Field.LENGTH:
-				return False
 			case self.Field.LINK:
 				return True
 			case _:
@@ -41,14 +45,34 @@ class MetaDataYoutube:
 		match fieldType:
 			case self.Field.LINK:
 				return 'https://www.example.com'
+			case self.Field.CATEGORY:
+				return 'LetsPlay'
+			case self.Field.PROGRESS:
+				return '0:00'
 			case self.Field.LENGTH:
 				return '0:00'
+			case self.Field.WATCHED:
+				return 'False'
 			case _:
 				return ''
 
+	def getDefaultFieldSets(self):
+		fieldSets = {}
+		fieldSets[self.Field.CATEGORY] = {self.getDefaultFieldValue(self.Field.CATEGORY)}
+		fieldSets[self.Field.WATCHED] = set(self.getSortedFieldSet(self.Field.WATCHED))
+		return fieldSets
+
+	def getSortedFieldSet(self, fieldType):
+		if fieldType == self.Field.WATCHED:
+			return ['True', 'False']
+		elif fieldType in self.fieldSets:
+			return sorted(self.fieldSets[fieldType])
+		else:
+			return None
+
 	def __init__(self):
 		self.metaData = []
-		self.fieldSets = {}
+		self.fieldSets = self.getDefaultFieldSets()
 		self.readMetaData()
 
 	def getFieldTypeName(self, fieldType):
@@ -67,12 +91,6 @@ class MetaDataYoutube:
 		infoText += MetaDataYoutube.FIELD_SEPARATOR.join(fields)
 		return infoText
 
-	def getSortedFieldSet(self, fieldType):
-		if fieldType in self.fieldSets:
-			return sorted(self.fieldSets[fieldType])
-		else:
-			return None
-
 	def getFieldByIdx(self, fieldType, idx):
 		return self.metaData[idx][fieldType.value]
 
@@ -83,6 +101,13 @@ class MetaDataYoutube:
 		if self.isLoadableFieldType(fieldType):
 			for idx in range(self.getEntryCount()):
 				if self.metaData[idx][fieldType.value] == fieldValue:
+					return idx
+		return None
+
+	def getIdxByName(self, name):
+		if name != '':
+			for idx in range(self.getEntryCount()):
+				if self.metaData[idx][self.Field.NAME.value] == name:
 					return idx
 		return None
 
