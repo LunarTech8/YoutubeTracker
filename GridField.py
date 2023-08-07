@@ -57,7 +57,7 @@ class GridField():
 		elif type == GridField.Type.DynamicLabel:
 			gridField = tk.Label(root, textvariable=arg1, borderwidth=2, relief='sunken', width=width)
 		elif type == GridField.Type.Header:
-			gridField = tk.Label(root, text=arg1, borderwidth=2, relief='groove')
+			gridField = tk.Label(root, text=arg1, borderwidth=2, width=width, relief='groove')
 		else:
 			raise AttributeError('Invalid grid field type')
 		gridField.grid(row=row, column=column, sticky='news')

@@ -4,10 +4,12 @@ from MetaDataYoutube import MetaDataYoutube
 from GridField import GridField
 
 # Configurables:
-CONTROL_WINDOW_SIZE = (1045, 500)
-CONTROL_WINDOW_GRID_COLUMN_NAMES = ('Watched:', 'Progress:', 'Length:', 'Category:', 'Name:', 'Link:')
-CONTROL_WINDOW_GRID_COLUMN_WIDTHS = (10, 10, 10, 20, 80, 40)
-assert len(CONTROL_WINDOW_GRID_COLUMN_NAMES) == len(CONTROL_WINDOW_GRID_COLUMN_WIDTHS)
+WINDOW_SIZE = (1045, 500)
+HEADER_COLUMN_NAMES = ('Watched:', 'Progress:', 'Length:', 'Category:', 'Name:', 'Link:', '')
+HEADER_COLUMN_WIDTHS = (10, 12, 12, 18, 72, 38, 5)
+ENTRIES_COLUMN_WIDTHS = (10, 10, 10, 20, 80, 40)
+assert len(HEADER_COLUMN_NAMES) == len(HEADER_COLUMN_WIDTHS)
+assert len(MetaDataYoutube.SORTED_FIELD_TYPES) == len(ENTRIES_COLUMN_WIDTHS)
 # Global variables:
 controlWindow = NotImplemented
 
@@ -62,33 +64,36 @@ def pasteClipboardToStrVar(root, strVar):
 def createControlWindow(root):
 	global controlWindow
 	root.title('Youtube list')
-	root.geometry(str(CONTROL_WINDOW_SIZE[0]) + 'x' + str(CONTROL_WINDOW_SIZE[1]))
+	root.geometry(str(WINDOW_SIZE[0]) + 'x' + str(WINDOW_SIZE[1]))
 	root.resizable(0, 1)
-	# Set up scrollable main frame:
+	# Set up fixed header frame and scrollable entries frame:
 	outerFrame = tk.Frame(root)
 	outerFrame.pack(fill=tk.BOTH, expand=1)
-	outerCanvas = tk.Canvas(outerFrame)
-	outerCanvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
-	outerScrollbar = tk.Scrollbar(outerFrame, orient=tk.VERTICAL, command=outerCanvas.yview)
-	outerScrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-	outerCanvas.configure(yscrollcommand=outerScrollbar.set)
-	outerCanvas.bind('<Configure>', lambda event: outerCanvas.configure(scrollregion=outerCanvas.bbox('all')))
-	mainFrame = tk.Frame(outerCanvas)
-	outerCanvas.create_window((0, 0), window=mainFrame, anchor='nw')
-	# Create grid field for entries:
-	controlWindow = ControlWindow(mainFrame)
+	headerFrame = tk.Canvas(outerFrame)
+	headerFrame.pack(side=tk.TOP, fill=tk.X, expand=0)
+	entriesCanvas = tk.Canvas(outerFrame)
+	entriesCanvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+	entriesScrollbar = tk.Scrollbar(outerFrame, orient=tk.VERTICAL, command=entriesCanvas.yview)
+	entriesScrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+	entriesCanvas.configure(yscrollcommand=entriesScrollbar.set)
+	entriesCanvas.bind('<Configure>', lambda event: entriesCanvas.configure(scrollregion=entriesCanvas.bbox('all')))
+	entriesFrame = tk.Frame(entriesCanvas)
+	entriesCanvas.create_window((0, 0), window=entriesFrame, anchor='nw')
+	controlWindow = ControlWindow(entriesFrame)
+	# Create grid field for headers:
 	row = 0
-	for column in range(len(CONTROL_WINDOW_GRID_COLUMN_NAMES)):
-		GridField.add(mainFrame, row, column, CONTROL_WINDOW_GRID_COLUMN_WIDTHS[column], GridField.Type.Header, CONTROL_WINDOW_GRID_COLUMN_NAMES[column])
+	for column in range(len(HEADER_COLUMN_NAMES)):
+		GridField.add(headerFrame, row, column, HEADER_COLUMN_WIDTHS[column], GridField.Type.Header, HEADER_COLUMN_NAMES[column])
+	# Create grid field for entries:
 	for i in range(controlWindow.getEntryCount()):
 		row = i + 1
 		column = 0
 		for fieldType in MetaDataYoutube.SORTED_FIELD_TYPES:
 			fieldSet = controlWindow.metaData.getSortedFieldSet(fieldType)
 			if fieldSet != None:
-				GridField.add(mainFrame, row, column, CONTROL_WINDOW_GRID_COLUMN_WIDTHS[column], GridField.Type.Combobox, controlWindow.getFieldStrVar(i, fieldType), fieldSet)
+				GridField.add(entriesFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], GridField.Type.Combobox, controlWindow.getFieldStrVar(i, fieldType), fieldSet)
 			else:
-				GridField.add(mainFrame, row, column, CONTROL_WINDOW_GRID_COLUMN_WIDTHS[column], GridField.Type.TextEntry, controlWindow.getFieldStrVar(i, fieldType), controlWindow.fieldCallback, pasteClipboardToStrVar)
+				GridField.add(entriesFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], GridField.Type.TextEntry, controlWindow.getFieldStrVar(i, fieldType), controlWindow.fieldCallback, pasteClipboardToStrVar)
 			column += 1
 
 def main():

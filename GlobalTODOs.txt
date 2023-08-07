@@ -23,6 +23,8 @@ Work status:
 !!!>>- Implement OpenYoutubeList.pyw
 	- Propagate changes made in the list into the metaData
 	- Think about how to get idx in feedback
+!!>- Integrate UpdateYoutubeList.pyw into OpenYoutubeList.pyw
+	- Use a separate fixed row at the top for that with an add button instead of the watched check box
 
 
 // -------------
@@ -31,10 +33,9 @@ Work status:
 
 !!- Make the watched status dependant on progress versus length and the other way around
 !!- Set MetaDataYoutube.txt on gitignore list
-!!- Integrate UpdateYoutubeList.pyw into OpenYoutubeList.pyw
-	- Use a separate fixed row at the top for that with an add button instead of the watched check box
-!- Make header not scrollable / always stay on top
 !- Check that progress is smaller or equal to length and watched is true when progress is equal to length else false
+!- Make special characters work in names
+!- Have a more precise way of setting the grid element widths independent of the types and total width
 
 
 // -------------
