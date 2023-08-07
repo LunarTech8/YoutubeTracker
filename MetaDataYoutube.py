@@ -10,7 +10,7 @@ class MetaDataYoutube:
 		WATCHED = 5
 
 	FILE_NAME = 'MetaDataYoutube.txt'
-	FIELD_SEPARATOR = ' | '  # FIXME: Use another separator as this one is used in video names
+	FIELD_SEPARATOR = ' --- '
 	SORTED_FIELD_TYPES = (Field.WATCHED, Field.PROGRESS, Field.LENGTH, Field.CATEGORY, Field.NAME, Field.LINK)
 
 	def isValidFieldValue(self, fieldType, fieldValue):
