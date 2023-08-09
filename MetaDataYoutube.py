@@ -13,8 +13,18 @@ class MetaDataYoutube:
 	FIELD_SEPARATOR = ' --- '
 	SORTED_FIELD_TYPES = (Field.WATCHED, Field.PROGRESS, Field.LENGTH, Field.CATEGORY, Field.NAME, Field.LINK)
 
+	def isTime(text, noLeadingZero=False):
+		if noLeadingZero and text.startswith('0'):
+			return False
+		noMaxValue = (text.count(':') == 2)
+		for timePart in text.split(':', 2):
+			if (timePart == '' or (timePart.isdigit() and (noMaxValue or (int(timePart) <= 60 and len(timePart) <= 2)))) == False:
+				return False
+			noMaxValue = False
+		return True
+
 	def isValidFieldValue(self, fieldType, fieldValue):
-		if fieldValue == None or fieldValue == '' or MetaDataYoutube.FIELD_SEPARATOR in fieldValue:
+		if fieldValue == None or MetaDataYoutube.FIELD_SEPARATOR in fieldValue:
 			return False
 		match fieldType:
 			case self.Field.NAME:
@@ -24,9 +34,9 @@ class MetaDataYoutube:
 			case self.Field.CATEGORY:
 				return ' ' not in fieldValue
 			case self.Field.PROGRESS:
-				return fieldValue.count(':') > 0 and fieldValue.replace(':', '').isdigit()
+				return MetaDataYoutube.isTime(fieldValue)
 			case self.Field.LENGTH:
-				return fieldValue.count(':') > 0 and fieldValue.replace(':', '').isdigit() and fieldValue != '0:00'
+				return MetaDataYoutube.isTime(fieldValue, True)
 			case self.Field.WATCHED:
 				return fieldValue in self.getSortedFieldSet(self.Field.WATCHED)
 			case _:
@@ -114,12 +124,19 @@ class MetaDataYoutube:
 	def getEntryCount(self):
 		return len(self.metaData)
 
+	def setFieldByIdx(self, fieldType, idx, fieldValue):
+		self.checkField(fieldType, fieldValue)
+		self.metaData[idx][fieldType.value] = fieldValue
+
+	def checkField(self, fieldType, fieldValue):
+		if self.isValidFieldValue(fieldType, fieldValue) == False:
+			raise ValueError('Invalid formating for ' + self.getFieldTypeName(fieldType) + ' (' + fieldValue + ')')
+		elif fieldType in self.fieldSets:
+			self.fieldSets.get(fieldType).add(fieldValue)
+
 	def checkFields(self, fields):
 		for fieldType in self.Field:
-			if self.isValidFieldValue(fieldType, fields[fieldType.value]) == False:
-				raise ValueError('Invalid formating for ' + self.getFieldTypeName(fieldType) + ' (' + fields[fieldType.value] + ')')
-			elif fieldType in self.fieldSets:
-				self.fieldSets.get(fieldType).add(fields[fieldType.value])
+			self.checkField(fieldType, fields[fieldType.value])
 
 	def addEntry(self, fields):
 		self.checkFields(fields)

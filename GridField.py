@@ -41,6 +41,8 @@ class GridField():
 			if arg3 != None:
 				gridField.bind("<Button-3>", lambda event, root=root, strVar=arg1: arg3(root, strVar))
 		elif type == GridField.Type.Combobox:
+			if arg3 != None:
+				arg1.trace_add('write', arg3)
 			gridField = ttk.Combobox(root, justify='center', width=width-5, textvariable=arg1)
 			gridField['values'] = arg2
 		elif type == GridField.Type.Radiobutton:

@@ -18,12 +18,11 @@ class ControlWindow:
 		self.metaData = MetaDataYoutube()
 		self.entries = []
 		self.fieldStrVars = []
-		self.feedbackStrVar = tk.StringVar(root, 'No field data entered')
 		self.readEntries()
 		for idx in range(self.getEntryCount()):
 			self.fieldStrVars.append({})
 			for fieldType in MetaDataYoutube.Field:
-				self.fieldStrVars[idx][fieldType.value] = tk.StringVar(root, self.entries[idx][fieldType.value])
+				self.fieldStrVars[idx][fieldType.value] = tk.StringVar(root, self.entries[idx][0][fieldType.value])
 
 	def getEntryCount(self):
 		return len(self.entries)
@@ -31,32 +30,29 @@ class ControlWindow:
 	def getFieldStrVar(self, idx, fieldType):
 		return self.fieldStrVars[idx][fieldType.value]
 
-	def getFeedbackStrVar(self):
-		return self.feedbackStrVar
-
 	def readEntries(self):
 		self.entries.clear()
 		for idx in range(self.metaData.getEntryCount()):
-			self.entries.append(self.metaData.getEntryByIdx(idx))
-		self.entries.sort(key=lambda entry: next(iter(entry[MetaDataYoutube.Field.NAME.value])))
+			self.entries.append((self.metaData.getEntryByIdx(idx), idx))
+		self.entries.sort(key=lambda entry: next(iter(entry[0][MetaDataYoutube.Field.NAME.value])))
 
-	def loadFieldsByField(self, fieldType, fieldValue):
-		entryIdx = self.metaData.getIdxByField(fieldType, fieldValue)
-		if entryIdx != None:
-			entry = self.metaData.getEntryByIdx(entryIdx)
-			for fieldType in MetaDataYoutube.Field:
-				self.getFieldStrVar(entryIdx, fieldType).set(entry[fieldType.value])
+	def loadFieldByIdx(self, idx, fieldType):
+		self.getFieldStrVar(idx, fieldType).set(self.metaData.getFieldByIdx(fieldType, self.entries[idx][1]))
+
+	def writeFieldByIdx(self, idx, fieldType):
+		self.metaData.setFieldByIdx(fieldType, self.entries[idx][1], self.getFieldStrVar(idx, fieldType).get())
+		self.metaData.writeMetaData()
 
 	def fieldCallback(self, name, index, mode):
-		for fieldType in MetaDataYoutube.Field:
-			fieldStrVars = self.getFieldStrVar(0, fieldType)  # TODO: think about how to get idx here
-			if str(fieldStrVars) == name:
-				if self.metaData.isValidFieldValue(fieldType, fieldStrVars.get()):
-					self.getFeedbackStrVar().set(self.metaData.getFieldTypeName(fieldType) + ' field valid')
-					self.loadFieldsByField(fieldType, fieldStrVars.get())
-				else:
-					self.getFeedbackStrVar().set(self.metaData.getFieldTypeName(fieldType) + ' field invalid')
-				break
+		for idx in range(self.getEntryCount()):
+			for fieldType in MetaDataYoutube.Field:
+				fieldStrVars = self.getFieldStrVar(idx, fieldType)
+				if str(fieldStrVars) == name:
+					if self.metaData.isValidFieldValue(fieldType, fieldStrVars.get()):
+						self.writeFieldByIdx(idx, fieldType)
+					else:
+						self.loadFieldByIdx(idx, fieldType)
+					break
 
 def pasteClipboardToStrVar(root, strVar):
 	strVar.set(root.clipboard_get())
@@ -91,7 +87,7 @@ def createControlWindow(root):
 		for fieldType in MetaDataYoutube.SORTED_FIELD_TYPES:
 			fieldSet = controlWindow.metaData.getSortedFieldSet(fieldType)
 			if fieldSet != None:
-				GridField.add(entriesFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], GridField.Type.Combobox, controlWindow.getFieldStrVar(i, fieldType), fieldSet)
+				GridField.add(entriesFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], GridField.Type.Combobox, controlWindow.getFieldStrVar(i, fieldType), fieldSet, controlWindow.fieldCallback)
 			else:
 				GridField.add(entriesFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], GridField.Type.TextEntry, controlWindow.getFieldStrVar(i, fieldType), controlWindow.fieldCallback, pasteClipboardToStrVar)
 			column += 1
