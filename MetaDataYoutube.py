@@ -11,7 +11,7 @@ class MetaDataYoutube:
 
 	FILE_NAME = 'MetaDataYoutube.txt'
 	FIELD_SEPARATOR = ' --- '
-	SORTED_FIELD_TYPES = (Field.WATCHED, Field.PROGRESS, Field.LENGTH, Field.CATEGORY, Field.NAME, Field.LINK)
+	SORTED_FIELD_TYPES = (Field.PROGRESS, Field.LENGTH, Field.CATEGORY, Field.NAME, Field.LINK, Field.WATCHED)
 
 	def isTime(text, noLeadingZero=False):
 		if noLeadingZero and text.startswith('0'):

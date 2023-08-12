@@ -21,18 +21,20 @@ Work status:
 // -------------
 
 !!!>- Have a more precise way of setting the grid element widths independent of the types and total width
-!!>- Integrate UpdateYoutubeList.pyw into OpenYoutubeList.pyw
-	- Use a separate fixed row at the top for that with an add button instead of the watched check box
 
 
 // -------------
 // Backlog:
 // -------------
 
+!!!- Prevent invalid changes to metaData entries via the entries list
+!!- Remove list entry from metaData if name is emptied by user
 !!- Make the watched status dependant on progress versus length and the other way around
 !!- Set MetaDataYoutube.txt on gitignore list
+!!- Make add button show "Add" for new entries and "Update" for existing entries
 !- Check that progress is smaller or equal to length and watched is true when progress is equal to length else false
 !- Make special characters work in names
+!- Add a border between header and list
 
 
 // -------------
@@ -41,3 +43,4 @@ Work status:
 
 !- Make the link clickable and for it to open the video at the current time
 !- Change the watched/unwatched to a check box
+!- Integrate a feedback field
