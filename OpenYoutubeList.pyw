@@ -1,5 +1,6 @@
 import traceback
 import tkinter as tk
+from datetime import datetime
 from MetaDataYoutube import MetaDataYoutube
 from GridField import GridField
 
@@ -7,7 +8,7 @@ from GridField import GridField
 WINDOW_SIZE = (1045, 500)
 HEADER_COLUMN_NAMES = ('Progress:', 'Length:', 'Category:', 'Name:', 'Link:', 'Watched:', '')
 HEADER_COLUMN_WIDTHS = (12, 12, 18, 72, 38, 12, 5)
-ENTRIES_COLUMN_WIDTHS = (10, 10, 19, 80, 40, 12)
+ENTRIES_COLUMN_WIDTHS = (10, 10, 17, 80, 40, 12)
 assert len(HEADER_COLUMN_NAMES) == len(HEADER_COLUMN_WIDTHS)
 assert len(MetaDataYoutube.SORTED_FIELD_TYPES) == len(ENTRIES_COLUMN_WIDTHS)
 # Global variables:
@@ -74,10 +75,17 @@ class EntriesList:
 		return self.fieldStrVars[idx][fieldType.value]
 
 	def readEntries(self):
-		self.entries.clear()
+		entries = []
 		for idx in range(metaData.getEntryCount()):
-			self.entries.append((metaData.getEntryByIdx(idx), idx))
-		self.entries.sort(key=lambda entry: next(iter(entry[0][MetaDataYoutube.Field.NAME.value])))
+			entries.append((metaData.getEntryByIdx(idx), idx))
+		entries.sort(key=lambda entry: datetime.strptime(entry[0][MetaDataYoutube.Field.ADD_TIME.value], '%Y-%m-%d %I:%M:%S.%f'))
+		self.entries.clear()
+		for entry in entries:
+			if entry[0][MetaDataYoutube.Field.WATCHED.value] == str(True):
+				self.entries.append(entry)
+		for entry in self.entries:
+			entries.remove(entry)
+		self.entries.extend(entries)
 
 	def loadFieldByIdx(self, idx, fieldType):
 		self.getFieldStrVar(idx, fieldType).set(metaData.getFieldByIdx(fieldType, self.entries[idx][1]))
@@ -95,6 +103,12 @@ class EntriesList:
 						self.writeFieldByIdx(idx, fieldType)
 					else:
 						self.loadFieldByIdx(idx, fieldType)
+					if fieldType == MetaDataYoutube.Field.WATCHED and fieldStrVars.get() == str(True):
+						self.getFieldStrVar(idx, MetaDataYoutube.Field.PROGRESS).set(self.getFieldStrVar(idx, MetaDataYoutube.Field.LENGTH).get())
+						self.writeFieldByIdx(idx, MetaDataYoutube.Field.PROGRESS)
+					elif fieldType == MetaDataYoutube.Field.PROGRESS and fieldStrVars.get() == self.getFieldStrVar(idx, MetaDataYoutube.Field.LENGTH).get():
+						self.getFieldStrVar(idx, MetaDataYoutube.Field.WATCHED).set(str(True))
+						self.writeFieldByIdx(idx, MetaDataYoutube.Field.WATCHED)
 					break
 
 def pasteClipboardToStrVar(root, strVar):

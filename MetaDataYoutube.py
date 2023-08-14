@@ -1,4 +1,5 @@
 from enum import Enum
+from datetime import datetime
 
 class MetaDataYoutube:
 	class Field(Enum):
@@ -8,6 +9,7 @@ class MetaDataYoutube:
 		PROGRESS = 3
 		LENGTH = 4
 		WATCHED = 5
+		ADD_TIME = 6
 
 	FILE_NAME = 'MetaDataYoutube.txt'
 	FIELD_SEPARATOR = ' --- '
@@ -21,6 +23,15 @@ class MetaDataYoutube:
 			if (timePart == '' or (timePart.isdigit() and (noMaxValue or (int(timePart) <= 60 and len(timePart) <= 2)))) == False:
 				return False
 			noMaxValue = False
+		return True
+
+	def isDatetime(text):
+		if text.count('-') != 2 or text.count(':') != 2 or text.count(' ') != 1 or text.count('.') != 1:
+			return False
+		text = text.replace(':', '-').replace(' ', '-').replace('.', '-')
+		for timePart in text.split('-'):
+			if timePart.isdigit() == False:
+				return False
 		return True
 
 	def isValidFieldValue(self, fieldType, fieldValue):
@@ -39,6 +50,8 @@ class MetaDataYoutube:
 				return MetaDataYoutube.isTime(fieldValue, True)
 			case self.Field.WATCHED:
 				return fieldValue in self.getSortedFieldSet(self.Field.WATCHED)
+			case self.Field.ADD_TIME:
+				return MetaDataYoutube.isDatetime(fieldValue)
 			case _:
 				return False
 
@@ -63,18 +76,20 @@ class MetaDataYoutube:
 				return '0:00'
 			case self.Field.WATCHED:
 				return 'False'
+			case self.Field.ADD_TIME:
+				return '2000-01-01 0:00:00.0'
 			case _:
 				return ''
 
 	def getDefaultFieldSets(self):
 		fieldSets = {}
-		fieldSets[self.Field.CATEGORY] = {self.getDefaultFieldValue(self.Field.CATEGORY)}
-		fieldSets[self.Field.WATCHED] = set(self.getSortedFieldSet(self.Field.WATCHED))
+		fieldSets[self.Field.CATEGORY.value] = {self.getDefaultFieldValue(self.Field.CATEGORY)}
+		fieldSets[self.Field.WATCHED.value] = set(self.getSortedFieldSet(self.Field.WATCHED))
 		return fieldSets
 
 	def getSortedFieldSet(self, fieldType):
 		if fieldType == self.Field.WATCHED:
-			return ['True', 'False']
+			return [str(True), str(False)]
 		elif fieldType in self.fieldSets:
 			return sorted(self.fieldSets[fieldType])
 		else:
@@ -139,10 +154,12 @@ class MetaDataYoutube:
 			self.checkField(fieldType, fields[fieldType.value])
 
 	def addEntry(self, fields):
+		fields[self.Field.ADD_TIME.value] = str(datetime.now())
 		self.checkFields(fields)
 		self.metaData.append(fields)
 
 	def updateEntry(self, idx, fields):
+		fields[self.Field.ADD_TIME.value] = str(datetime.now())
 		self.checkFields(fields)
 		for fieldType in self.Field:
 			self.metaData[idx][fieldType.value] = fields[fieldType.value]
