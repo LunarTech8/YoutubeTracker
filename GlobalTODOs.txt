@@ -29,7 +29,6 @@ Work status:
 
 !!!- Prevent invalid changes to metaData entries via the entries list
 !!- Remove list entry from metaData if name is emptied by user
-!!- Set MetaDataYoutube.txt on gitignore list
 !!- Make add button show "Add" for new entries and "Update" for existing entries
 !- Check that progress is smaller or equal to length and watched is true when progress is equal to length else false
 !- Make special characters work in names
