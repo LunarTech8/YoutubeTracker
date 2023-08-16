@@ -11,6 +11,7 @@ class MetaDataYoutube:
 		WATCHED = 5
 		ADD_TIME = 6
 
+	ENCODING = 'utf-8'
 	FILE_NAME = 'MetaDataYoutube.txt'
 	FIELD_SEPARATOR = ' --- '
 	SORTED_FIELD_TYPES = (Field.PROGRESS, Field.LENGTH, Field.CATEGORY, Field.NAME, Field.LINK, Field.WATCHED)
@@ -39,7 +40,7 @@ class MetaDataYoutube:
 			return False
 		match fieldType:
 			case self.Field.NAME:
-				return True
+				return fieldValue != '' and fieldValue.isspace() == False
 			case self.Field.LINK:
 				return ' ' not in fieldValue and fieldValue.startswith('https://') and fieldValue != self.getDefaultFieldValue(self.Field.LINK)
 			case self.Field.CATEGORY:
@@ -164,8 +165,11 @@ class MetaDataYoutube:
 		for fieldType in self.Field:
 			self.metaData[idx][fieldType.value] = fields[fieldType.value]
 
+	def removeEntry(self, idx):
+		self.metaData.pop(idx)
+
 	def readMetaData(self):
-		metaDataFile = open(MetaDataYoutube.FILE_NAME, 'r')
+		metaDataFile = open(MetaDataYoutube.FILE_NAME, 'r', encoding=MetaDataYoutube.ENCODING)
 		lines = metaDataFile.readlines()
 		self.metaData = []
 		for line in lines:
@@ -177,5 +181,5 @@ class MetaDataYoutube:
 		metaDataFormated = []
 		for fields in self.metaData:
 			metaDataFormated.append(MetaDataYoutube.FIELD_SEPARATOR.join(fields))
-		with open(MetaDataYoutube.FILE_NAME, 'w')as metaDataFile:
+		with open(MetaDataYoutube.FILE_NAME, 'w', encoding=MetaDataYoutube.ENCODING)as metaDataFile:
 			metaDataFile.write('\n'.join(metaDataFormated))

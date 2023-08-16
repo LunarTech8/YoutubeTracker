@@ -78,7 +78,7 @@ class EntriesList:
 		entries = []
 		for idx in range(metaData.getEntryCount()):
 			entries.append((metaData.getEntryByIdx(idx), idx))
-		entries.sort(key=lambda entry: datetime.strptime(entry[0][MetaDataYoutube.Field.ADD_TIME.value], '%Y-%m-%d %I:%M:%S.%f'))
+		entries.sort(key=lambda entry: datetime.strptime(entry[0][MetaDataYoutube.Field.ADD_TIME.value], '%Y-%m-%d %H:%M:%S.%f'))
 		self.entries.clear()
 		for entry in entries:
 			if entry[0][MetaDataYoutube.Field.WATCHED.value] == str(True):
@@ -99,14 +99,23 @@ class EntriesList:
 			for fieldType in MetaDataYoutube.Field:
 				fieldStrVars = self.getFieldStrVar(idx, fieldType)
 				if str(fieldStrVars) == name:
-					if metaData.isValidFieldValue(fieldType, fieldStrVars.get()):
+					if fieldType == MetaDataYoutube.Field.NAME and fieldStrVars.get() == '':
+						# Empty name -> remove entry:
+						metaData.removeEntry(idx)
+						metaData.writeMetaData()
+						createEntriesFrameGridFields()
+					elif metaData.isValidFieldValue(fieldType, fieldStrVars.get()):
+						# Valid change -> update entry:
 						self.writeFieldByIdx(idx, fieldType)
 					else:
+						# Invalid change -> reload entry:
 						self.loadFieldByIdx(idx, fieldType)
 					if fieldType == MetaDataYoutube.Field.WATCHED and fieldStrVars.get() == str(True):
+						# Watched -> set progress equal to length:
 						self.getFieldStrVar(idx, MetaDataYoutube.Field.PROGRESS).set(self.getFieldStrVar(idx, MetaDataYoutube.Field.LENGTH).get())
 						self.writeFieldByIdx(idx, MetaDataYoutube.Field.PROGRESS)
 					elif fieldType == MetaDataYoutube.Field.PROGRESS and fieldStrVars.get() == self.getFieldStrVar(idx, MetaDataYoutube.Field.LENGTH).get():
+						# Progress equal to length -> set to watched:
 						self.getFieldStrVar(idx, MetaDataYoutube.Field.WATCHED).set(str(True))
 						self.writeFieldByIdx(idx, MetaDataYoutube.Field.WATCHED)
 					break
