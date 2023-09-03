@@ -20,6 +20,7 @@ Work status:
 // Worklog:
 // -------------
 
+!>>- Check/force that progress is smaller or equal to length and watched is true when progress is equal to length else false
 !!!>- Have a more precise way of setting the grid element widths independent of the types and total width
 
 // -------------
@@ -27,8 +28,6 @@ Work status:
 // -------------
 
 !!- Make add button show "Add" for new entries and "Update" for existing entries
-!- Check that progress is smaller or equal to length and watched is true when progress is equal to length else false
-!- Make special characters work in names
 !- Add a border between header and list
 
 

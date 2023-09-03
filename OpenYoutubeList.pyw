@@ -7,8 +7,8 @@ from GridField import GridField
 # Configurables:
 WINDOW_SIZE = (1045, 500)
 HEADER_COLUMN_NAMES = ('Progress:', 'Length:', 'Category:', 'Name:', 'Link:', 'Watched:', '')
-HEADER_COLUMN_WIDTHS = (12, 12, 18, 72, 38, 12, 5)
-ENTRIES_COLUMN_WIDTHS = (10, 10, 17, 80, 40, 12)
+HEADER_COLUMN_WIDTHS = (12, 12, 19, 72, 38, 13, 5)
+ENTRIES_COLUMN_WIDTHS = (10, 10, 19, 80, 40, 12)
 assert len(HEADER_COLUMN_NAMES) == len(HEADER_COLUMN_WIDTHS)
 assert len(MetaDataYoutube.SORTED_FIELD_TYPES) == len(ENTRIES_COLUMN_WIDTHS)
 # Global variables:

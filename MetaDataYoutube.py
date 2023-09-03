@@ -84,8 +84,8 @@ class MetaDataYoutube:
 
 	def getDefaultFieldSets(self):
 		fieldSets = {}
-		fieldSets[self.Field.CATEGORY.value] = {self.getDefaultFieldValue(self.Field.CATEGORY)}
-		fieldSets[self.Field.WATCHED.value] = set(self.getSortedFieldSet(self.Field.WATCHED))
+		fieldSets[self.Field.CATEGORY] = {self.getDefaultFieldValue(self.Field.CATEGORY)}
+		fieldSets[self.Field.WATCHED] = set(self.getSortedFieldSet(self.Field.WATCHED))
 		return fieldSets
 
 	def getSortedFieldSet(self, fieldType):
