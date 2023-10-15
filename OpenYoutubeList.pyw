@@ -5,6 +5,7 @@ from MetaDataYoutube import MetaDataYoutube
 from GridField import GridField
 
 # Configurables:
+HIDE_WATCHED = False
 WINDOW_SIZE = (1045, 500)
 HEADER_COLUMN_NAMES = ('Progress:', 'Length:', 'Category:', 'Name:', 'Link:', 'Watched:', '')
 HEADER_COLUMN_WIDTHS = (12, 12, 19, 72, 38, 13, 5)
@@ -75,17 +76,20 @@ class EntriesList:
 		return self.fieldStrVars[idx][fieldType.value]
 
 	def readEntries(self):
-		entries = []
-		for idx in range(metaData.getEntryCount()):
-			entries.append((metaData.getEntryByIdx(idx), idx))
-		entries.sort(key=lambda entry: datetime.strptime(entry[0][MetaDataYoutube.Field.ADD_TIME.value], '%Y-%m-%d %H:%M:%S.%f'))
 		self.entries.clear()
-		for entry in entries:
-			if entry[0][MetaDataYoutube.Field.WATCHED.value] == str(True):
-				self.entries.append(entry)
+		for idx in range(metaData.getEntryCount()):
+			self.entries.append((metaData.getEntryByIdx(idx), idx))
+		self.entries.sort(key=lambda entry: datetime.strptime(entry[0][MetaDataYoutube.Field.ADD_TIME.value], '%Y-%m-%d %H:%M:%S.%f'))
+		entriesWatched = []
 		for entry in self.entries:
-			entries.remove(entry)
-		self.entries.extend(entries)
+			if entry[0][MetaDataYoutube.Field.WATCHED.value] == str(True):
+				entriesWatched.append(entry)
+		for entry in entriesWatched:
+			self.entries.remove(entry)
+		if not HIDE_WATCHED:
+			entriesWatched.extend(self.entries)
+			self.entries = entriesWatched
+		self.entries.reverse()
 
 	def loadFieldByIdx(self, idx, fieldType):
 		self.getFieldStrVar(idx, fieldType).set(metaData.getFieldByIdx(fieldType, self.entries[idx][1]))
@@ -158,15 +162,15 @@ def createHeaderFrameGridFields():
 	column = 0
 	row += 1
 	for fieldType in MetaDataYoutube.SORTED_FIELD_TYPES:
-		if fieldType == MetaDataYoutube.Field.WATCHED:
-			GridField.add(headerFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], GridField.Type.Button, 'Add', addVideo)
+		fieldSet = metaData.getSortedFieldSet(fieldType)
+		if fieldSet != None:
+			GridField.add(headerFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], GridField.Type.Combobox, entryAdder.getFieldStrVar(fieldType), fieldSet)
 		else:
-			fieldSet = metaData.getSortedFieldSet(fieldType)
-			if fieldSet != None:
-				GridField.add(headerFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], GridField.Type.Combobox, entryAdder.getFieldStrVar(fieldType), fieldSet)
-			else:
-				GridField.add(headerFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], GridField.Type.TextEntry, entryAdder.getFieldStrVar(fieldType), entryAdder.fieldCallback, pasteClipboardToStrVar)
+			GridField.add(headerFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], GridField.Type.TextEntry, entryAdder.getFieldStrVar(fieldType), entryAdder.fieldCallback, pasteClipboardToStrVar)
 		column += 1
+	row += 1
+	GridField.add(headerFrame, row, (0, len(ENTRIES_COLUMN_WIDTHS) - 1), sum(ENTRIES_COLUMN_WIDTHS) - ENTRIES_COLUMN_WIDTHS[-1], GridField.Type.DynamicLabel, entryAdder.getFeedbackStrVar())
+	GridField.add(headerFrame, row, len(ENTRIES_COLUMN_WIDTHS) - 1, ENTRIES_COLUMN_WIDTHS[-1], GridField.Type.Button, 'Add', addVideo)
 
 def createEntriesFrameGridFields():
 	global entriesList

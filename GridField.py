@@ -62,7 +62,13 @@ class GridField():
 			gridField = tk.Label(root, text=arg1, borderwidth=2, width=width, relief='groove')
 		else:
 			raise AttributeError('Invalid grid field type')
-		gridField.grid(row=row, column=column, sticky='news')
+		if isinstance(column, int):
+			gridField.grid(row=row, column=column, sticky='news')
+		elif isinstance(column, tuple) and len(column) == 2:
+			gridField.grid(row=row, column=column[0], columnspan=column[1], sticky='news')
+			column = column[0]
+		else:
+			raise AttributeError('Invalid column type')
 		root.rowconfigure(row, weight=1)
 		root.columnconfigure(column, weight=1)
 

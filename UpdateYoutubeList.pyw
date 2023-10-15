@@ -64,7 +64,7 @@ def addVideo():
 	if hasInvalidFields:
 		controlWindow.getFeedbackStrVar().set('Invalid fields have been reset')
 		return
-	# Add video:
+	# Add/update video:
 	if controlWindow.getIdxByName() == None:
 		controlWindow.metaData.addEntry(controlWindow.getFields())
 		controlWindow.metaData.writeMetaData()
