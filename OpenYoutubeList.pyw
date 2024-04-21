@@ -122,6 +122,10 @@ class EntriesList:
 						# Progress equal to length -> set to watched:
 						self.getFieldStrVar(idx, MetaDataYoutube.Field.WATCHED).set(str(True))
 						self.writeFieldByIdx(idx, MetaDataYoutube.Field.WATCHED)
+					elif fieldType == MetaDataYoutube.Field.PROGRESS and fieldStrVars.get() < self.getFieldStrVar(idx, MetaDataYoutube.Field.LENGTH).get():
+						# Progress smaller than length -> set to not watched:
+						self.getFieldStrVar(idx, MetaDataYoutube.Field.WATCHED).set(str(False))
+						self.writeFieldByIdx(idx, MetaDataYoutube.Field.WATCHED)
 					break
 
 def pasteClipboardToStrVar(root, strVar):
@@ -137,6 +141,16 @@ def addVideo():
 			hasInvalidFields = True
 	if hasInvalidFields:
 		entryAdder.getFeedbackStrVar().set('Invalid fields have been reset')
+		return
+	# Check invalid progress to length and watched status:
+	if entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get() > entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get():
+		entryAdder.getFeedbackStrVar().set('Invalid: Progress cannot be larger than length')
+		return
+	if entryAdder.getFieldStrVar(MetaDataYoutube.Field.WATCHED).get() == str(False) and entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get() == entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get():
+		entryAdder.getFeedbackStrVar().set('Invalid: Progress cannot be equal to length if not watched')
+		return
+	if entryAdder.getFieldStrVar(MetaDataYoutube.Field.WATCHED).get() == str(True) and entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get() < entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get():
+		entryAdder.getFeedbackStrVar().set('Invalid: Progress cannot be smaller than length if watched')
 		return
 	# Add or update video:
 	if entryAdder.getIdxByName() == None:
