@@ -14,6 +14,7 @@ class GridField():
 		TextEntry = auto()
 		Combobox = auto()
 		Radiobutton = auto()
+		Checkbutton = auto()
 
 	radiobuttons = []
 	radiobuttonWidth = 0
@@ -52,14 +53,19 @@ class GridField():
 			style.map('IndicatorOff.TRadiobutton', background=[('selected', 'grey'), ('active', '#ececec')])
 			gridField = ttk.Radiobutton(root, style='IndicatorOff.TRadiobutton', width=width, text=arg1, variable=arg2, value=arg3)
 			GridField.radiobuttons.append(gridField)
+		elif type == GridField.Type.Checkbutton:
+			gridField = ttk.Checkbutton(root, width=width, text=arg3, variable=arg1, command=arg2)
 		elif type == GridField.Type.Button:
-			gridField = tk.Button(root, text=arg1, borderwidth=4, width=width-15, command=arg2)
+			if arg3 == True:
+				gridField = tk.Button(root, textvariable=arg1, borderwidth=4, width=width-15, command=arg2)
+			else:
+				gridField = tk.Button(root, text=arg1, borderwidth=4, width=width-15, command=arg2)
 		elif type == GridField.Type.Label:
 			gridField = tk.Label(root, text=arg1, borderwidth=2, relief='sunken', width=width)
 		elif type == GridField.Type.DynamicLabel:
 			gridField = tk.Label(root, textvariable=arg1, borderwidth=2, relief='sunken', width=width)
 		elif type == GridField.Type.Header:
-			gridField = tk.Label(root, text=arg1, borderwidth=2, width=width, relief='groove')
+			gridField = tk.Label(root, text=arg1, borderwidth=2, relief='groove', width=width)
 		else:
 			raise AttributeError('Invalid grid field type')
 		if isinstance(column, int):

@@ -35,4 +35,3 @@ Work status:
 // -------------
 
 !- Make the link clickable and for it to open the video at the current time
-!- Change the watched/unwatched to a check box

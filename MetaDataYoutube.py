@@ -1,5 +1,6 @@
 from enum import Enum
 from datetime import datetime
+from GridField import GridField
 
 class MetaDataYoutube:
 	class Field(Enum):
@@ -16,6 +17,7 @@ class MetaDataYoutube:
 	FIELD_SEPARATOR = ' --- '
 	SORTED_FIELD_TYPES = (Field.PROGRESS, Field.LENGTH, Field.CATEGORY, Field.NAME, Field.LINK, Field.WATCHED)
 
+	@staticmethod
 	def isTime(text, noLeadingZero=False):
 		if noLeadingZero and text.startswith('0'):
 			return False
@@ -26,6 +28,7 @@ class MetaDataYoutube:
 			noMaxValue = False
 		return True
 
+	@staticmethod
 	def isDatetime(text):
 		if text.count('-') != 2 or text.count(':') != 2 or text.count(' ') != 1 or text.count('.') != 1:
 			return False
@@ -35,84 +38,109 @@ class MetaDataYoutube:
 				return False
 		return True
 
-	def isValidFieldValue(self, fieldType, fieldValue):
+	@staticmethod
+	def isValidFieldValue(fieldType, fieldValue):
 		if fieldValue == None or MetaDataYoutube.FIELD_SEPARATOR in fieldValue:
 			return False
 		match fieldType:
-			case self.Field.NAME:
+			case MetaDataYoutube.Field.NAME:
 				return fieldValue != '' and fieldValue.isspace() == False
-			case self.Field.LINK:
-				return ' ' not in fieldValue and fieldValue.startswith('https://') and fieldValue != self.getDefaultFieldValue(self.Field.LINK)
-			case self.Field.CATEGORY:
+			case MetaDataYoutube.Field.LINK:
+				return ' ' not in fieldValue and fieldValue.startswith('https://') and fieldValue != MetaDataYoutube.getDefaultFieldValue(MetaDataYoutube.Field.LINK)
+			case MetaDataYoutube.Field.CATEGORY:
 				return ' ' not in fieldValue
-			case self.Field.PROGRESS:
+			case MetaDataYoutube.Field.PROGRESS:
 				return MetaDataYoutube.isTime(fieldValue)
-			case self.Field.LENGTH:
+			case MetaDataYoutube.Field.LENGTH:
 				return MetaDataYoutube.isTime(fieldValue, True)
-			case self.Field.WATCHED:
-				return fieldValue in self.getSortedFieldSet(self.Field.WATCHED)
-			case self.Field.ADD_TIME:
+			case MetaDataYoutube.Field.WATCHED:
+				return MetaDataYoutube.getIntVarValue(MetaDataYoutube.Field.WATCHED, fieldValue) is not None
+			case MetaDataYoutube.Field.ADD_TIME:
 				return MetaDataYoutube.isDatetime(fieldValue)
 			case _:
 				return False
 
-	def isLoadableFieldType(self, fieldType):
+	@staticmethod
+	def isLoadableFieldType(fieldType):
 		match fieldType:
-			case self.Field.NAME:
+			case MetaDataYoutube.Field.NAME:
 				return True
-			case self.Field.LINK:
+			case MetaDataYoutube.Field.LINK:
 				return True
 			case _:
 				return False
 
-	def getDefaultFieldValue(self, fieldType):
+	@staticmethod
+	def getDefaultFieldValue(fieldType):
 		match fieldType:
-			case self.Field.LINK:
+			case MetaDataYoutube.Field.LINK:
 				return 'https://www.example.com'
-			case self.Field.CATEGORY:
+			case MetaDataYoutube.Field.CATEGORY:
 				return 'LetsPlay'
-			case self.Field.PROGRESS:
+			case MetaDataYoutube.Field.PROGRESS:
 				return '0:00'
-			case self.Field.LENGTH:
+			case MetaDataYoutube.Field.LENGTH:
 				return '0:00'
-			case self.Field.WATCHED:
+			case MetaDataYoutube.Field.WATCHED:
 				return 'False'
-			case self.Field.ADD_TIME:
+			case MetaDataYoutube.Field.ADD_TIME:
 				return '2000-01-01 0:00:00.0'
 			case _:
 				return ''
 
-	def getDefaultFieldSets(self):
+	@staticmethod
+	def getDefaultFieldSets():
 		fieldSets = {}
-		fieldSets[self.Field.CATEGORY] = {self.getDefaultFieldValue(self.Field.CATEGORY)}
-		fieldSets[self.Field.WATCHED] = set(self.getSortedFieldSet(self.Field.WATCHED))
+		fieldSets[MetaDataYoutube.Field.CATEGORY] = {MetaDataYoutube.getDefaultFieldValue(MetaDataYoutube.Field.CATEGORY)}
 		return fieldSets
 
-	def getSortedFieldSet(self, fieldType):
-		if fieldType == self.Field.WATCHED:
-			return [str(True), str(False)]
-		elif fieldType in self.fieldSets:
-			return sorted(self.fieldSets[fieldType])
-		else:
-			return None
+	@staticmethod
+	def getIntVarValue(fieldType, strVarValue):
+		match fieldType:
+			case MetaDataYoutube.Field.WATCHED:
+				if strVarValue == str(True):
+					return int(True)
+				elif strVarValue == str(False):
+					return int(False)
+				else:
+					return None
+			case _:
+				return None
+
+	@staticmethod
+	def getStrVarValue(fieldType, intVarValue):
+		match fieldType:
+			case MetaDataYoutube.Field.WATCHED:
+				return str(bool(intVarValue))
+			case _:
+				return None
+
+	def getGridFieldData(self, fieldType):
+		match fieldType:
+			case MetaDataYoutube.Field.CATEGORY:
+				return (GridField.Type.Combobox, 'getFieldStrVar', sorted(self.fieldSets[fieldType]), None)
+			case MetaDataYoutube.Field.WATCHED:
+				return (GridField.Type.Checkbutton, 'getFieldIntVar', 'fieldCallbackWithFieldType', 'Finished')
+			case _:
+				return (GridField.Type.TextEntry, 'getFieldStrVar', 'fieldCallback', 'pasteClipboardToStrVar')
 
 	def __init__(self):
 		self.metaData = []
-		self.fieldSets = self.getDefaultFieldSets()
+		self.fieldSets = MetaDataYoutube.getDefaultFieldSets()
 		self.readMetaData()
 
 	def getFieldTypeName(self, fieldType):
 		return fieldType.name.capitalize().replace('_', ' ')
 
 	def getLinkByIdx(self, idx):
-		return self.metaData[idx][self.Field.LINK.value]
+		return self.metaData[idx][MetaDataYoutube.Field.LINK.value]
 
 	def getInfoTextByIdx(self, idx):
-		infoText = self.metaData[idx][self.Field.NAME.value] + '\n'
+		infoText = self.metaData[idx][MetaDataYoutube.Field.NAME.value] + '\n'
 		infoText += 'MetaData: '
 		fields = []
-		for fieldType in self.Field:
-			if fieldType != self.Field.NAME:
+		for fieldType in MetaDataYoutube.Field:
+			if fieldType != MetaDataYoutube.Field.NAME:
 				fields.append(self.metaData[idx][fieldType.value])
 		infoText += MetaDataYoutube.FIELD_SEPARATOR.join(fields)
 		return infoText
@@ -124,7 +152,7 @@ class MetaDataYoutube:
 		return self.metaData[idx]
 
 	def getIdxByField(self, fieldType, fieldValue):
-		if self.isLoadableFieldType(fieldType):
+		if MetaDataYoutube.isLoadableFieldType(fieldType):
 			for idx in range(self.getEntryCount()):
 				if self.metaData[idx][fieldType.value] == fieldValue:
 					return idx
@@ -133,7 +161,7 @@ class MetaDataYoutube:
 	def getIdxByName(self, name):
 		if name != '':
 			for idx in range(self.getEntryCount()):
-				if self.metaData[idx][self.Field.NAME.value] == name:
+				if self.metaData[idx][MetaDataYoutube.Field.NAME.value] == name:
 					return idx
 		return None
 
@@ -145,24 +173,24 @@ class MetaDataYoutube:
 		self.metaData[idx][fieldType.value] = fieldValue
 
 	def checkField(self, fieldType, fieldValue):
-		if self.isValidFieldValue(fieldType, fieldValue) == False:
+		if MetaDataYoutube.isValidFieldValue(fieldType, fieldValue) == False:
 			raise ValueError('Invalid formating for ' + self.getFieldTypeName(fieldType) + ' (' + fieldValue + ')')
 		elif fieldType in self.fieldSets:
 			self.fieldSets.get(fieldType).add(fieldValue)
 
 	def checkFields(self, fields):
-		for fieldType in self.Field:
+		for fieldType in MetaDataYoutube.Field:
 			self.checkField(fieldType, fields[fieldType.value])
 
 	def addEntry(self, fields):
-		fields[self.Field.ADD_TIME.value] = str(datetime.now())
+		fields[MetaDataYoutube.Field.ADD_TIME.value] = str(datetime.now())
 		self.checkFields(fields)
 		self.metaData.append(fields)
 
 	def updateEntry(self, idx, fields):
-		fields[self.Field.ADD_TIME.value] = str(datetime.now())
+		fields[MetaDataYoutube.Field.ADD_TIME.value] = str(datetime.now())
 		self.checkFields(fields)
-		for fieldType in self.Field:
+		for fieldType in MetaDataYoutube.Field:
 			self.metaData[idx][fieldType.value] = fields[fieldType.value]
 
 	def removeEntry(self, idx):

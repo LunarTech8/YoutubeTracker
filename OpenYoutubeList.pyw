@@ -22,15 +22,21 @@ entriesFrame = None
 class EntryAdder:
 	def __init__(self, root):
 		self.fieldStrVars = {}
+		self.fieldIntVars = {}
 		self.feedbackStrVar = tk.StringVar(root, 'No field data entered')
 		for fieldType in MetaDataYoutube.Field:
-			self.fieldStrVars[fieldType] = tk.StringVar(root, metaData.getDefaultFieldValue(fieldType))
+			self.fieldStrVars[fieldType] = tk.StringVar(root, MetaDataYoutube.getDefaultFieldValue(fieldType))
+			if (intValue := MetaDataYoutube.getIntVarValue(fieldType, self.getFieldStrVar(fieldType).get())) is not None:
+				self.fieldIntVars[fieldType] = tk.IntVar(root, intValue)
 
 	def getIdxByName(self):
 		return metaData.getIdxByName(self.getFieldStrVar(MetaDataYoutube.Field.NAME).get())
 
 	def getFieldStrVar(self, fieldType):
 		return self.fieldStrVars[fieldType]
+
+	def getFieldIntVar(self, fieldType):
+		return self.fieldIntVars.get(fieldType, None)
 
 	def getFeedbackStrVar(self):
 		return self.feedbackStrVar
@@ -48,11 +54,13 @@ class EntryAdder:
 			for fieldType in MetaDataYoutube.Field:
 				self.getFieldStrVar(fieldType).set(entry[fieldType.value])
 
-	def fieldCallback(self, name, index, mode):
+	def fieldCallback(self, name, index=None, mode=None):
 		for fieldType in MetaDataYoutube.Field:
 			fieldStrVars = self.getFieldStrVar(fieldType)
-			if str(fieldStrVars) == name:
-				if metaData.isValidFieldValue(fieldType, fieldStrVars.get()):
+			if name == fieldType or name == str(fieldStrVars):
+				if fieldIntVars := self.getFieldIntVar(fieldType):
+					fieldStrVars.set(MetaDataYoutube.getStrVarValue(fieldType, fieldIntVars.get()))
+				if MetaDataYoutube.isValidFieldValue(fieldType, fieldStrVars.get()):
 					self.getFeedbackStrVar().set(metaData.getFieldTypeName(fieldType) + ' field valid')
 					self.loadFieldsByField(fieldType, fieldStrVars.get())
 				else:
@@ -63,17 +71,24 @@ class EntriesList:
 	def __init__(self, root):
 		self.entries = []
 		self.fieldStrVars = []
+		self.fieldIntVars = []
 		self.readEntries()
 		for idx in range(self.getEntryCount()):
 			self.fieldStrVars.append({})
+			self.fieldIntVars.append({})
 			for fieldType in MetaDataYoutube.Field:
-				self.fieldStrVars[idx][fieldType.value] = tk.StringVar(root, self.entries[idx][0][fieldType.value])
+				self.fieldStrVars[idx][fieldType] = tk.StringVar(root, self.entries[idx][0][fieldType.value])
+				if (intValue := MetaDataYoutube.getIntVarValue(fieldType, self.getFieldStrVar(idx, fieldType).get())) is not None:
+					self.fieldIntVars[idx][fieldType] = tk.IntVar(root, intValue)
 
 	def getEntryCount(self):
 		return len(self.entries)
 
 	def getFieldStrVar(self, idx, fieldType):
-		return self.fieldStrVars[idx][fieldType.value]
+		return self.fieldStrVars[idx][fieldType]
+
+	def getFieldIntVar(self, idx, fieldType):
+		return self.fieldIntVars[idx].get(fieldType, None)
 
 	def readEntries(self):
 		self.entries.clear()
@@ -98,33 +113,39 @@ class EntriesList:
 		metaData.setFieldByIdx(fieldType, self.entries[idx][1], self.getFieldStrVar(idx, fieldType).get())
 		metaData.writeMetaData()
 
-	def fieldCallback(self, name, index, mode):
+	def fieldCallback(self, name, index=None, mode=None):
 		for idx in range(self.getEntryCount()):
 			for fieldType in MetaDataYoutube.Field:
 				fieldStrVars = self.getFieldStrVar(idx, fieldType)
-				if str(fieldStrVars) == name:
+				if (name == fieldType and index == idx) or name == str(fieldStrVars):
+					if fieldIntVars := self.getFieldIntVar(idx, fieldType):
+						fieldStrVars.set(MetaDataYoutube.getStrVarValue(fieldType, fieldIntVars.get()))
 					if fieldType == MetaDataYoutube.Field.NAME and fieldStrVars.get() == '':
 						# Empty name -> remove entry:
 						metaData.removeEntry(idx)
 						metaData.writeMetaData()
 						createEntriesFrameGridFields()
-					elif metaData.isValidFieldValue(fieldType, fieldStrVars.get()):
+					elif MetaDataYoutube.isValidFieldValue(fieldType, fieldStrVars.get()):
 						# Valid change -> update entry:
 						self.writeFieldByIdx(idx, fieldType)
 					else:
 						# Invalid change -> reload entry:
 						self.loadFieldByIdx(idx, fieldType)
-					if fieldType == MetaDataYoutube.Field.WATCHED and fieldStrVars.get() == str(True):
+					if fieldType == MetaDataYoutube.Field.WATCHED and fieldIntVars.get() == int(True):
 						# Watched -> set progress equal to length:
 						self.getFieldStrVar(idx, MetaDataYoutube.Field.PROGRESS).set(self.getFieldStrVar(idx, MetaDataYoutube.Field.LENGTH).get())
 						self.writeFieldByIdx(idx, MetaDataYoutube.Field.PROGRESS)
+					elif fieldType == MetaDataYoutube.Field.WATCHED and fieldIntVars.get() == int(False):
+						# Not watched -> set progress to default:
+						self.getFieldStrVar(idx, MetaDataYoutube.Field.PROGRESS).set(MetaDataYoutube.getDefaultFieldValue(MetaDataYoutube.Field.PROGRESS))
+						self.writeFieldByIdx(idx, MetaDataYoutube.Field.PROGRESS)
 					elif fieldType == MetaDataYoutube.Field.PROGRESS and fieldStrVars.get() == self.getFieldStrVar(idx, MetaDataYoutube.Field.LENGTH).get():
 						# Progress equal to length -> set to watched:
-						self.getFieldStrVar(idx, MetaDataYoutube.Field.WATCHED).set(str(True))
+						self.getFieldIntVar(idx, MetaDataYoutube.Field.WATCHED).set(int(True))
 						self.writeFieldByIdx(idx, MetaDataYoutube.Field.WATCHED)
 					elif fieldType == MetaDataYoutube.Field.PROGRESS and fieldStrVars.get() < self.getFieldStrVar(idx, MetaDataYoutube.Field.LENGTH).get():
 						# Progress smaller than length -> set to not watched:
-						self.getFieldStrVar(idx, MetaDataYoutube.Field.WATCHED).set(str(False))
+						self.getFieldIntVar(idx, MetaDataYoutube.Field.WATCHED).set(int(False))
 						self.writeFieldByIdx(idx, MetaDataYoutube.Field.WATCHED)
 					break
 
@@ -136,8 +157,8 @@ def addVideo():
 	hasInvalidFields = False
 	for fieldType in MetaDataYoutube.Field:
 		fieldStrVars = entryAdder.getFieldStrVar(fieldType)
-		if metaData.isValidFieldValue(fieldType, fieldStrVars.get()) == False:
-			fieldStrVars.set(metaData.getDefaultFieldValue(fieldType))
+		if MetaDataYoutube.isValidFieldValue(fieldType, fieldStrVars.get()) == False:
+			fieldStrVars.set(MetaDataYoutube.getDefaultFieldValue(fieldType))
 			hasInvalidFields = True
 	if hasInvalidFields:
 		entryAdder.getFeedbackStrVar().set('Invalid fields have been reset')
@@ -146,10 +167,10 @@ def addVideo():
 	if entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get() > entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get():
 		entryAdder.getFeedbackStrVar().set('Invalid: Progress cannot be larger than length')
 		return
-	if entryAdder.getFieldStrVar(MetaDataYoutube.Field.WATCHED).get() == str(False) and entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get() == entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get():
+	if entryAdder.getFieldIntVar(MetaDataYoutube.Field.WATCHED).get() == int(False) and entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get() == entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get():
 		entryAdder.getFeedbackStrVar().set('Invalid: Progress cannot be equal to length if not watched')
 		return
-	if entryAdder.getFieldStrVar(MetaDataYoutube.Field.WATCHED).get() == str(True) and entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get() < entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get():
+	if entryAdder.getFieldIntVar(MetaDataYoutube.Field.WATCHED).get() == int(True) and entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get() < entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get():
 		entryAdder.getFeedbackStrVar().set('Invalid: Progress cannot be smaller than length if watched')
 		return
 	# Add or update video:
@@ -176,11 +197,18 @@ def createHeaderFrameGridFields():
 	column = 0
 	row += 1
 	for fieldType in MetaDataYoutube.SORTED_FIELD_TYPES:
-		fieldSet = metaData.getSortedFieldSet(fieldType)
-		if fieldSet != None:
-			GridField.add(headerFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], GridField.Type.Combobox, entryAdder.getFieldStrVar(fieldType), fieldSet)
-		else:
-			GridField.add(headerFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], GridField.Type.TextEntry, entryAdder.getFieldStrVar(fieldType), entryAdder.fieldCallback, pasteClipboardToStrVar)
+		gridFieldType, gridFieldArg1, gridFieldArg2, gridFieldArg3 = metaData.getGridFieldData(fieldType)
+		if gridFieldArg1 == 'getFieldStrVar':
+			gridFieldArg1 = entryAdder.getFieldStrVar(fieldType)
+		elif gridFieldArg1 == 'getFieldIntVar':
+			gridFieldArg1 = entryAdder.getFieldIntVar(fieldType)
+		if gridFieldArg2 == 'fieldCallback':
+			gridFieldArg2 = entryAdder.fieldCallback
+		elif gridFieldArg2 == 'fieldCallbackWithFieldType':
+			gridFieldArg2 = lambda fieldType=fieldType: entryAdder.fieldCallback(fieldType)
+		if gridFieldArg3 == 'pasteClipboardToStrVar':
+			gridFieldArg3 = pasteClipboardToStrVar
+		GridField.add(headerFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], gridFieldType, gridFieldArg1, gridFieldArg2, gridFieldArg3)
 		column += 1
 	row += 1
 	GridField.add(headerFrame, row, (0, len(ENTRIES_COLUMN_WIDTHS) - 1), sum(ENTRIES_COLUMN_WIDTHS) - ENTRIES_COLUMN_WIDTHS[-1], GridField.Type.DynamicLabel, entryAdder.getFeedbackStrVar())
@@ -196,11 +224,18 @@ def createEntriesFrameGridFields():
 		row = i + 1
 		column = 0
 		for fieldType in MetaDataYoutube.SORTED_FIELD_TYPES:
-			fieldSet = metaData.getSortedFieldSet(fieldType)
-			if fieldSet != None:
-				GridField.add(entriesFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], GridField.Type.Combobox, entriesList.getFieldStrVar(i, fieldType), fieldSet, entriesList.fieldCallback)
-			else:
-				GridField.add(entriesFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], GridField.Type.TextEntry, entriesList.getFieldStrVar(i, fieldType), entriesList.fieldCallback, pasteClipboardToStrVar)
+			gridFieldType, gridFieldArg1, gridFieldArg2, gridFieldArg3 = metaData.getGridFieldData(fieldType)
+			if gridFieldArg1 == 'getFieldStrVar':
+				gridFieldArg1 = entriesList.getFieldStrVar(i, fieldType)
+			elif gridFieldArg1 == 'getFieldIntVar':
+				gridFieldArg1 = entriesList.getFieldIntVar(i, fieldType)
+			if gridFieldArg2 == 'fieldCallback':
+				gridFieldArg2 = entriesList.fieldCallback
+			elif gridFieldArg2 == 'fieldCallbackWithFieldType':
+				gridFieldArg2 = lambda i=i, fieldType=fieldType: entriesList.fieldCallback(fieldType, i)
+			if gridFieldArg3 == 'pasteClipboardToStrVar':
+				gridFieldArg3 = pasteClipboardToStrVar
+			GridField.add(entriesFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], gridFieldType, gridFieldArg1, gridFieldArg2, gridFieldArg3)
 			column += 1
 
 def createControlWindow(root):
