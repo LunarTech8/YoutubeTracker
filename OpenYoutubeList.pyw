@@ -1,3 +1,4 @@
+import re
 import traceback
 import tkinter as tk
 from datetime import datetime
@@ -60,6 +61,8 @@ class EntryAdder:
 			if name == fieldType or name == str(fieldStrVars):
 				if fieldIntVars := self.getFieldIntVar(fieldType):
 					fieldStrVars.set(MetaDataYoutube.getStrVarValue(fieldType, fieldIntVars.get()))
+				if fieldType == MetaDataYoutube.Field.PROGRESS or fieldType == MetaDataYoutube.Field.LENGTH:
+					fieldStrVars.set(re.sub('[^0-9]', ':', fieldStrVars.get()))
 				if MetaDataYoutube.isValidFieldValue(fieldType, fieldStrVars.get()):
 					self.getFeedbackStrVar().set(metaData.getFieldTypeName(fieldType) + ' field valid')
 					self.loadFieldsByField(fieldType, fieldStrVars.get())
@@ -139,11 +142,11 @@ class EntriesList:
 						# Not watched -> set progress to default:
 						self.getFieldStrVar(idx, MetaDataYoutube.Field.PROGRESS).set(MetaDataYoutube.getDefaultFieldValue(MetaDataYoutube.Field.PROGRESS))
 						self.writeFieldByIdx(idx, MetaDataYoutube.Field.PROGRESS)
-					elif fieldType == MetaDataYoutube.Field.PROGRESS and fieldStrVars.get() == self.getFieldStrVar(idx, MetaDataYoutube.Field.LENGTH).get():
+					elif fieldType == MetaDataYoutube.Field.PROGRESS and MetaDataYoutube.timeToSeconds(fieldStrVars.get()) == MetaDataYoutube.timeToSeconds(self.getFieldStrVar(idx, MetaDataYoutube.Field.LENGTH).get()):
 						# Progress equal to length -> set to watched:
 						self.getFieldIntVar(idx, MetaDataYoutube.Field.WATCHED).set(int(True))
 						self.writeFieldByIdx(idx, MetaDataYoutube.Field.WATCHED)
-					elif fieldType == MetaDataYoutube.Field.PROGRESS and fieldStrVars.get() < self.getFieldStrVar(idx, MetaDataYoutube.Field.LENGTH).get():
+					elif fieldType == MetaDataYoutube.Field.PROGRESS and MetaDataYoutube.timeToSeconds(fieldStrVars.get()) < MetaDataYoutube.timeToSeconds(self.getFieldStrVar(idx, MetaDataYoutube.Field.LENGTH).get()):
 						# Progress smaller than length -> set to not watched:
 						self.getFieldIntVar(idx, MetaDataYoutube.Field.WATCHED).set(int(False))
 						self.writeFieldByIdx(idx, MetaDataYoutube.Field.WATCHED)
@@ -164,13 +167,13 @@ def addVideo():
 		entryAdder.getFeedbackStrVar().set('Invalid fields have been reset')
 		return
 	# Check invalid progress to length and watched status:
-	if entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get() > entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get():
+	if MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get()) > MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get()):
 		entryAdder.getFeedbackStrVar().set('Invalid: Progress cannot be larger than length')
 		return
-	if entryAdder.getFieldIntVar(MetaDataYoutube.Field.WATCHED).get() == int(False) and entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get() == entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get():
+	if entryAdder.getFieldIntVar(MetaDataYoutube.Field.WATCHED).get() == int(False) and MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get()) == MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get()):
 		entryAdder.getFeedbackStrVar().set('Invalid: Progress cannot be equal to length if not watched')
 		return
-	if entryAdder.getFieldIntVar(MetaDataYoutube.Field.WATCHED).get() == int(True) and entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get() < entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get():
+	if entryAdder.getFieldIntVar(MetaDataYoutube.Field.WATCHED).get() == int(True) and MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get()) < MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get()):
 		entryAdder.getFeedbackStrVar().set('Invalid: Progress cannot be smaller than length if watched')
 		return
 	# Add or update video:

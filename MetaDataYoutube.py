@@ -16,21 +16,32 @@ class MetaDataYoutube:
 	FILE_NAME = 'MetaDataYoutube.txt'
 	FIELD_SEPARATOR = ' --- '
 	SORTED_FIELD_TYPES = (Field.PROGRESS, Field.LENGTH, Field.CATEGORY, Field.NAME, Field.LINK, Field.WATCHED)
+	MAX_TIME_SEPARATORS = 2
+	MAX_TIME_PART_DURATION = 59
 
 	@staticmethod
 	def isTime(text, noLeadingZero=False):
 		if noLeadingZero and text.startswith('0'):
 			return False
-		noMaxValue = (text.count(':') == 2)
-		for timePart in text.split(':', 2):
-			if (timePart == '' or (timePart.isdigit() and (noMaxValue or (int(timePart) <= 60 and len(timePart) <= 2)))) == False:
+		noMaxValue = (text.count(':') == MetaDataYoutube.MAX_TIME_SEPARATORS)
+		for timePart in text.split(':', MetaDataYoutube.MAX_TIME_SEPARATORS):
+			if (timePart == '' or (timePart.isdigit() and (noMaxValue or (int(timePart) <= MetaDataYoutube.MAX_TIME_PART_DURATION and len(timePart) <= MetaDataYoutube.MAX_TIME_SEPARATORS)))) == False:
 				return False
 			noMaxValue = False
 		return True
 
 	@staticmethod
+	def timeToSeconds(time):
+		assert MetaDataYoutube.isTime(time), f'Invalid time "{time}"'
+		parts = time.split(':', MetaDataYoutube.MAX_TIME_SEPARATORS)
+		while len(parts) < MetaDataYoutube.MAX_TIME_SEPARATORS + 1:
+			parts.insert(0, '0')
+		hours, minutes, seconds = map(int, parts)
+		return (hours * 60 + minutes) * 60 + seconds
+
+	@staticmethod
 	def isDatetime(text):
-		if text.count('-') != 2 or text.count(':') != 2 or text.count(' ') != 1 or text.count('.') != 1:
+		if text.count('-') != 2 or text.count(':') != MetaDataYoutube.MAX_TIME_SEPARATORS or text.count(' ') != 1 or text.count('.') != 1:
 			return False
 		text = text.replace(':', '-').replace(' ', '-').replace('.', '-')
 		for timePart in text.split('-'):
@@ -46,7 +57,7 @@ class MetaDataYoutube:
 			case MetaDataYoutube.Field.NAME:
 				return fieldValue != '' and fieldValue.isspace() == False
 			case MetaDataYoutube.Field.LINK:
-				return ' ' not in fieldValue and fieldValue.startswith('https://') and fieldValue != MetaDataYoutube.getDefaultFieldValue(MetaDataYoutube.Field.LINK)
+				return ' ' not in fieldValue and fieldValue.startswith('https://www.youtube.com/watch?v=') and fieldValue != MetaDataYoutube.getDefaultFieldValue(MetaDataYoutube.Field.LINK)
 			case MetaDataYoutube.Field.CATEGORY:
 				return ' ' not in fieldValue
 			case MetaDataYoutube.Field.PROGRESS:
