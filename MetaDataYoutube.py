@@ -187,7 +187,7 @@ class MetaDataYoutube:
 		if not MetaDataYoutube.isValidFieldValue(fieldType, fieldValue):
 			raise ValueError('Invalid formating for ' + self.getFieldTypeName(fieldType) + ' (' + fieldValue + ')')
 		elif fieldType in self.fieldSets:
-			self.fieldSets.get(fieldType).add(fieldValue)
+			self.fieldSets[fieldType].add(fieldValue)
 
 	def checkFields(self, fields):
 		for fieldType in MetaDataYoutube.Field:

@@ -156,6 +156,7 @@ def pasteClipboardToStrVar(root, strVar):
 	strVar.set(root.clipboard_get())
 
 def addVideo():
+	assert entryAdder is not None
 	# Check validity:
 	hasInvalidFields = False
 	for fieldType in MetaDataYoutube.Field:
@@ -170,10 +171,12 @@ def addVideo():
 	if MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get()) > MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get()):
 		entryAdder.getFeedbackStrVar().set('Invalid: Progress cannot be larger than length')
 		return
-	if entryAdder.getFieldIntVar(MetaDataYoutube.Field.WATCHED).get() == int(False) and MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get()) == MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get()):
+	watchedFieldIntVar = entryAdder.getFieldIntVar(MetaDataYoutube.Field.WATCHED)
+	assert watchedFieldIntVar is not None
+	if watchedFieldIntVar.get() == int(False) and MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get()) == MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get()):
 		entryAdder.getFeedbackStrVar().set('Invalid: Progress cannot be equal to length if not watched')
 		return
-	if entryAdder.getFieldIntVar(MetaDataYoutube.Field.WATCHED).get() == int(True) and MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get()) < MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get()):
+	if watchedFieldIntVar.get() == int(True) and MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.PROGRESS).get()) < MetaDataYoutube.timeToSeconds(entryAdder.getFieldStrVar(MetaDataYoutube.Field.LENGTH).get()):
 		entryAdder.getFeedbackStrVar().set('Invalid: Progress cannot be smaller than length if watched')
 		return
 	# Add or update video:
@@ -189,6 +192,7 @@ def addVideo():
 
 def createHeaderFrameGridFields():
 	global entryAdder
+	assert headerFrame is not None
 	for widget in headerFrame.winfo_children():
 		widget.destroy()
 	entryAdder = EntryAdder(headerFrame)
@@ -208,7 +212,7 @@ def createHeaderFrameGridFields():
 		if gridFieldArg2 == 'fieldCallback':
 			gridFieldArg2 = entryAdder.fieldCallback
 		elif gridFieldArg2 == 'fieldCallbackWithFieldType':
-			gridFieldArg2 = lambda fieldType=fieldType: entryAdder.fieldCallback(fieldType)
+			gridFieldArg2 = lambda fieldType=fieldType, entryAdder=entryAdder: entryAdder.fieldCallback(fieldType)
 		if gridFieldArg3 == 'pasteClipboardToStrVar':
 			gridFieldArg3 = pasteClipboardToStrVar
 		GridField.add(headerFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], gridFieldType, gridFieldArg1, gridFieldArg2, gridFieldArg3)
@@ -219,6 +223,7 @@ def createHeaderFrameGridFields():
 
 def createEntriesFrameGridFields():
 	global entriesList
+	assert entriesFrame is not None
 	for widget in entriesFrame.winfo_children():
 		widget.destroy()
 	entriesList = EntriesList(entriesFrame)
@@ -235,7 +240,7 @@ def createEntriesFrameGridFields():
 			if gridFieldArg2 == 'fieldCallback':
 				gridFieldArg2 = entriesList.fieldCallback
 			elif gridFieldArg2 == 'fieldCallbackWithFieldType':
-				gridFieldArg2 = lambda i=i, fieldType=fieldType: entriesList.fieldCallback(fieldType, i)
+				gridFieldArg2 = lambda i=i, fieldType=fieldType, entriesList=entriesList: entriesList.fieldCallback(fieldType, i)
 			if gridFieldArg3 == 'pasteClipboardToStrVar':
 				gridFieldArg3 = pasteClipboardToStrVar
 			GridField.add(entriesFrame, row, column, ENTRIES_COLUMN_WIDTHS[column], gridFieldType, gridFieldArg1, gridFieldArg2, gridFieldArg3)
