@@ -25,7 +25,7 @@ class MetaDataYoutube:
 			return False
 		noMaxValue = (text.count(':') == MetaDataYoutube.MAX_TIME_SEPARATORS)
 		for timePart in text.split(':', MetaDataYoutube.MAX_TIME_SEPARATORS):
-			if (timePart == '' or (timePart.isdigit() and (noMaxValue or (int(timePart) <= MetaDataYoutube.MAX_TIME_PART_DURATION and len(timePart) <= MetaDataYoutube.MAX_TIME_SEPARATORS)))) == False:
+			if not (timePart == '' or (timePart.isdigit() and (noMaxValue or (int(timePart) <= MetaDataYoutube.MAX_TIME_PART_DURATION and len(timePart) <= MetaDataYoutube.MAX_TIME_SEPARATORS)))):
 				return False
 			noMaxValue = False
 		return True
@@ -45,17 +45,17 @@ class MetaDataYoutube:
 			return False
 		text = text.replace(':', '-').replace(' ', '-').replace('.', '-')
 		for timePart in text.split('-'):
-			if timePart.isdigit() == False:
+			if not timePart.isdigit():
 				return False
 		return True
 
 	@staticmethod
 	def isValidFieldValue(fieldType, fieldValue):
-		if fieldValue == None or MetaDataYoutube.FIELD_SEPARATOR in fieldValue:
+		if fieldValue is None or MetaDataYoutube.FIELD_SEPARATOR in fieldValue:
 			return False
 		match fieldType:
 			case MetaDataYoutube.Field.NAME:
-				return fieldValue != '' and fieldValue.isspace() == False
+				return fieldValue != '' and not fieldValue.isspace()
 			case MetaDataYoutube.Field.LINK:
 				return ' ' not in fieldValue and fieldValue.startswith('https://www.youtube.com/watch?v=') and fieldValue != MetaDataYoutube.getDefaultFieldValue(MetaDataYoutube.Field.LINK)
 			case MetaDataYoutube.Field.CATEGORY:
@@ -184,7 +184,7 @@ class MetaDataYoutube:
 		self.metaData[idx][fieldType.value] = fieldValue
 
 	def checkField(self, fieldType, fieldValue):
-		if MetaDataYoutube.isValidFieldValue(fieldType, fieldValue) == False:
+		if not MetaDataYoutube.isValidFieldValue(fieldType, fieldValue):
 			raise ValueError('Invalid formating for ' + self.getFieldTypeName(fieldType) + ' (' + fieldValue + ')')
 		elif fieldType in self.fieldSets:
 			self.fieldSets.get(fieldType).add(fieldValue)
@@ -220,5 +220,5 @@ class MetaDataYoutube:
 		metaDataFormated = []
 		for fields in self.metaData:
 			metaDataFormated.append(MetaDataYoutube.FIELD_SEPARATOR.join(fields))
-		with open(MetaDataYoutube.FILE_NAME, 'w', encoding=MetaDataYoutube.ENCODING)as metaDataFile:
+		with open(MetaDataYoutube.FILE_NAME, 'w', encoding=MetaDataYoutube.ENCODING) as metaDataFile:
 			metaDataFile.write('\n'.join(metaDataFormated))

@@ -160,7 +160,7 @@ def addVideo():
 	hasInvalidFields = False
 	for fieldType in MetaDataYoutube.Field:
 		fieldStrVars = entryAdder.getFieldStrVar(fieldType)
-		if MetaDataYoutube.isValidFieldValue(fieldType, fieldStrVars.get()) == False:
+		if not MetaDataYoutube.isValidFieldValue(fieldType, fieldStrVars.get()):
 			fieldStrVars.set(MetaDataYoutube.getDefaultFieldValue(fieldType))
 			hasInvalidFields = True
 	if hasInvalidFields:
@@ -177,7 +177,7 @@ def addVideo():
 		entryAdder.getFeedbackStrVar().set('Invalid: Progress cannot be smaller than length if watched')
 		return
 	# Add or update video:
-	if entryAdder.getIdxByName() == None:
+	if entryAdder.getIdxByName() is None:
 		metaData.addEntry(entryAdder.getFields())
 		metaData.writeMetaData()
 		entryAdder.getFeedbackStrVar().set('New entry added')
