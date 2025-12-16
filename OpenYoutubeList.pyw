@@ -15,7 +15,6 @@ assert len(HEADER_COLUMN_NAMES) == len(HEADER_COLUMN_WIDTHS)
 assert len(MetaDataYoutube.SORTED_FIELD_TYPES) == len(ENTRIES_COLUMN_WIDTHS)
 # Global variables:
 metaData = MetaDataYoutube()
-entriesList = None
 entryAdder = None
 headerFrame = None
 entriesFrame = None
@@ -222,7 +221,6 @@ def createHeaderFrameGridFields():
 	GridField.add(headerFrame, row, len(ENTRIES_COLUMN_WIDTHS) - 1, ENTRIES_COLUMN_WIDTHS[-1], GridField.Type.Button, 'Add', addVideo)
 
 def createEntriesFrameGridFields():
-	global entriesList
 	assert entriesFrame is not None
 	for widget in entriesFrame.winfo_children():
 		widget.destroy()
@@ -263,7 +261,7 @@ def createControlWindow(root):
 	entriesScrollbar = tk.Scrollbar(outerFrame, orient=tk.VERTICAL, command=entriesCanvas.yview)
 	entriesScrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 	entriesCanvas.configure(yscrollcommand=entriesScrollbar.set)
-	entriesCanvas.bind('<Configure>', lambda event: entriesCanvas.configure(scrollregion=entriesCanvas.bbox('all')))
+	entriesCanvas.bind('<Configure>', lambda _: entriesCanvas.configure(scrollregion=entriesCanvas.bbox('all')))
 	entriesFrame = tk.Frame(entriesCanvas)
 	entriesCanvas.create_window((0, 0), window=entriesFrame, anchor='nw')
 	createEntriesFrameGridFields()
