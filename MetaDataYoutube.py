@@ -1,3 +1,4 @@
+import win32com.client
 from enum import Enum
 from datetime import datetime
 from GridField import GridField
@@ -13,7 +14,7 @@ class MetaDataYoutube:
 		ADD_TIME = 6
 
 	ENCODING = 'utf-8'
-	FILE_NAME = 'MetaDataYoutube.txt'
+	FILE_NAME = 'MetaDataYoutube.txt.lnk'
 	FIELD_SEPARATOR = ' --- '
 	SORTED_FIELD_TYPES = (Field.PROGRESS, Field.LENGTH, Field.CATEGORY, Field.NAME, Field.LINK, Field.WATCHED)
 	MAX_TIME_SEPARATORS = 2
@@ -29,15 +30,6 @@ class MetaDataYoutube:
 				return False
 			noMaxValue = False
 		return True
-
-	@staticmethod
-	def timeToSeconds(time):
-		assert MetaDataYoutube.isTime(time), f'Invalid time "{time}"'
-		parts = time.split(':', MetaDataYoutube.MAX_TIME_SEPARATORS)
-		while len(parts) < MetaDataYoutube.MAX_TIME_SEPARATORS + 1:
-			parts.insert(0, '0')
-		hours, minutes, seconds = map(int, parts)
-		return (hours * 60 + minutes) * 60 + seconds
 
 	@staticmethod
 	def isDatetime(text):
@@ -106,6 +98,16 @@ class MetaDataYoutube:
 		return fieldSets
 
 	@staticmethod
+	def getMetaDataPath() -> str:
+		try:
+			if MetaDataYoutube.FILE_NAME.endswith('.lnk'):
+				return win32com.client.Dispatch("WScript.Shell").CreateShortCut(MetaDataYoutube.FILE_NAME).Targetpath
+			else:
+				return MetaDataYoutube.FILE_NAME
+		except Exception as e:
+			raise RuntimeError(f"Failed to resolve '{MetaDataYoutube.FILE_NAME}': {e}")
+
+	@staticmethod
 	def getIntVarValue(fieldType, strVarValue):
 		match fieldType:
 			case MetaDataYoutube.Field.WATCHED:
@@ -126,6 +128,20 @@ class MetaDataYoutube:
 			case _:
 				return None
 
+	@staticmethod
+	def timeToSeconds(time):
+		assert MetaDataYoutube.isTime(time), f'Invalid time "{time}"'
+		parts = time.split(':', MetaDataYoutube.MAX_TIME_SEPARATORS)
+		while len(parts) < MetaDataYoutube.MAX_TIME_SEPARATORS + 1:
+			parts.insert(0, '0')
+		hours, minutes, seconds = map(int, parts)
+		return (hours * 60 + minutes) * 60 + seconds
+
+	def __init__(self):
+		self.metaData = []
+		self.fieldSets = MetaDataYoutube.getDefaultFieldSets()
+		self.readMetaData()
+
 	def getGridFieldData(self, fieldType):
 		match fieldType:
 			case MetaDataYoutube.Field.CATEGORY:
@@ -134,11 +150,6 @@ class MetaDataYoutube:
 				return (GridField.Type.Checkbutton, 'getFieldIntVar', 'fieldCallbackWithFieldType', 'Finished')
 			case _:
 				return (GridField.Type.TextEntry, 'getFieldStrVar', 'fieldCallback', 'pasteClipboardToStrVar')
-
-	def __init__(self):
-		self.metaData = []
-		self.fieldSets = MetaDataYoutube.getDefaultFieldSets()
-		self.readMetaData()
 
 	def getFieldTypeName(self, fieldType):
 		return fieldType.name.capitalize().replace('_', ' ')
@@ -208,7 +219,7 @@ class MetaDataYoutube:
 		self.metaData.pop(idx)
 
 	def readMetaData(self):
-		metaDataFile = open(MetaDataYoutube.FILE_NAME, 'r', encoding=MetaDataYoutube.ENCODING)
+		metaDataFile = open(MetaDataYoutube.getMetaDataPath(), 'r', encoding=MetaDataYoutube.ENCODING)
 		lines = metaDataFile.readlines()
 		self.metaData = []
 		for line in lines:
@@ -220,5 +231,5 @@ class MetaDataYoutube:
 		metaDataFormated = []
 		for fields in self.metaData:
 			metaDataFormated.append(MetaDataYoutube.FIELD_SEPARATOR.join(fields))
-		with open(MetaDataYoutube.FILE_NAME, 'w', encoding=MetaDataYoutube.ENCODING) as metaDataFile:
+		with open(MetaDataYoutube.getMetaDataPath(), 'w', encoding=MetaDataYoutube.ENCODING) as metaDataFile:
 			metaDataFile.write('\n'.join(metaDataFormated))

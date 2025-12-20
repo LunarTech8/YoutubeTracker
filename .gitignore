@@ -152,4 +152,5 @@ cython_debug/
 #.idea/
 
 # Meta data
-MetaDataYoutube.txt
+MetaData*.txt
+MetaData*.txt.lnk
